@@ -2,6 +2,7 @@ package com.danielferreira.todolist.useCases;
 
 import com.danielferreira.todolist.dtos.todos.CreateTodoDTO;
 import com.danielferreira.todolist.dtos.todos.TodoResponseDTO;
+import com.danielferreira.todolist.dtos.todos.UpdateTodoDTO;
 import com.danielferreira.todolist.entities.TodoEntity;
 import com.danielferreira.todolist.repositories.TodoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,18 @@ public class TodoUseCase {
                 .toList();
     }
 
+    public TodoResponseDTO findById(String id) {
+        var todo = todoRepository.findById(id);
+        return todo.map(todoEntity -> new TodoResponseDTO(
+                todoEntity.getId(),
+                todoEntity.getTitle(),
+                todoEntity.getDescription(),
+                todoEntity.isCompleted(),
+                todoEntity.getCreatedAt(),
+                todoEntity.getUpdatedAt())).orElse(null);
+    }
+
+
     public TodoResponseDTO create(CreateTodoDTO todo) {
         var userId = userUseCase.getUser().getId();
         TodoEntity newTodo = new TodoEntity(todo.title(), todo.description(), userId, false);
@@ -48,4 +61,45 @@ public class TodoUseCase {
                 createdTodo.getUpdatedAt()
         );
     }
+
+    public boolean delete(String id) {
+        var todo = todoRepository.findById(id);
+        if (todo.isPresent()) {
+            todoRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+
+    public TodoResponseDTO update(UpdateTodoDTO todo) {
+        var updateTodo = todoRepository.getReferenceById(todo.id());
+        updateTodo.setTitle(todo.title());
+        updateTodo.setDescription(todo.description());
+        todoRepository.save(updateTodo);
+
+        return new TodoResponseDTO(
+                updateTodo.getId(),
+                updateTodo.getTitle(),
+                updateTodo.getDescription(),
+                updateTodo.isCompleted(),
+                updateTodo.getCreatedAt(),
+                updateTodo.getUpdatedAt()
+        );
+    };
+
+    public TodoResponseDTO toggleStatus(String id) {
+        var updateTodo = todoRepository.getReferenceById(id);
+        updateTodo.setCompleted(!updateTodo.isCompleted());
+        todoRepository.save(updateTodo);
+
+        return new TodoResponseDTO(
+                updateTodo.getId(),
+                updateTodo.getTitle(),
+                updateTodo.getDescription(),
+                updateTodo.isCompleted(),
+                updateTodo.getCreatedAt(),
+                updateTodo.getUpdatedAt()
+        );
+    };
+
 }

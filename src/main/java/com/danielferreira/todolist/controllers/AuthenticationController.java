@@ -1,11 +1,15 @@
 package com.danielferreira.todolist.controllers;
 
 import com.danielferreira.todolist.dtos.auth.AuthenticationDTO;
-import com.danielferreira.todolist.dtos.auth.LoginResponseDTO;
+import com.danielferreira.todolist.dtos.user.UserResponseDTO;
+import com.danielferreira.todolist.response.ResponseHandler;
+import com.danielferreira.todolist.response.UserResponse;
 import com.danielferreira.todolist.useCases.AuthUseCase;
+import com.danielferreira.todolist.useCases.UserUseCase;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -17,23 +21,29 @@ public class AuthenticationController {
     @Autowired
     AuthUseCase authUseCase;
 
+    @Autowired
+    UserUseCase userUseCase;
+
     @PostMapping("/login")
-    public ResponseEntity login(@RequestBody @Valid AuthenticationDTO data, BindingResult bindingResult) {
+    public ResponseEntity<Object> login(@RequestBody @Valid AuthenticationDTO data, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            return ResponseEntity.status(422).body(bindingResult.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).findFirst());
+            return ResponseHandler.generateResponse(String.valueOf(bindingResult.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).findFirst()), HttpStatus.BAD_REQUEST);
         }
+        var user = userUseCase.findUserByUsername(data.username());
+        if (user == null) return ResponseHandler.generateResponse("Usuário é/ou senha incorreto(s).", HttpStatus.UNPROCESSABLE_ENTITY);
         var token = authUseCase.login(data);
-        return ResponseEntity.ok(new LoginResponseDTO(token));
+        var userObj = UserResponse.generateResponse(token, new UserResponseDTO(user.getId(), user.getUsername(), user.getAvatar()));
+        return ResponseHandler.generateResponse("Login realizado com sucesso.", HttpStatus.OK, userObj);
 
     }
 
     @PostMapping("/register")
-    public ResponseEntity register(@RequestBody @Valid AuthenticationDTO data, BindingResult bindingResult) {
+    public ResponseEntity<Object> register(@RequestBody @Valid AuthenticationDTO data, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            return ResponseEntity.status(422).body(bindingResult.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).findFirst());
+            return ResponseHandler.generateResponse(String.valueOf(bindingResult.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).findFirst()), HttpStatus.BAD_REQUEST);
         }
         boolean notHasAccount = authUseCase.register(data);
-        if (!notHasAccount) return ResponseEntity.status(400).body("Usuário já registrado.");
-        return ResponseEntity.status(201).body("Usuário registrado com sucesso!");
+        if (!notHasAccount) return ResponseHandler.generateResponse("Usuário já cadastrado!", HttpStatus.BAD_REQUEST);
+        return ResponseHandler.generateResponse("Usuário registrado com sucesso!", HttpStatus.CREATED);
     }
 }
