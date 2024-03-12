@@ -26,6 +26,7 @@ public class UserEntity implements UserDetails {
     private String id;
     private String avatar;
     private String username;
+    private String email;
     private String password;
 
     @CreationTimestamp
@@ -36,7 +37,8 @@ public class UserEntity implements UserDetails {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public UserEntity(String username, String password) {
+    public UserEntity(String username, String password, String email) {
+        this.email = email;
         this.username = username;
         this.password = password;
     }

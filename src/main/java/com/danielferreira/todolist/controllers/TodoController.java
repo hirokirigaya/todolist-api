@@ -28,7 +28,7 @@ public class TodoController {
     @PostMapping("/create")
     public ResponseEntity<Object> createTodo(@RequestBody @Valid CreateTodoDTO todo, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            return ResponseHandler.generateResponse(String.valueOf(bindingResult.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).findFirst()), HttpStatus.BAD_REQUEST);
+            return ResponseHandler.generateResponse(String.valueOf(bindingResult.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).findFirst().get()), HttpStatus.BAD_REQUEST);
         }
         return ResponseHandler.generateResponse("Usuário cadastrado com sucesso!", HttpStatus.CREATED, todoUseCase.create(todo));
     }

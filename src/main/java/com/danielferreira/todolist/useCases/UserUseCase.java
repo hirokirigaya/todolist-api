@@ -17,7 +17,7 @@ public class UserUseCase {
         return (UserEntity) userDetails;
     }
 
-    public UserEntity findUserByUsername(String username) {
-        return (UserEntity) userRepository.findByUsername(username);
+    public UserEntity findUserByEmail(String email) {
+        return (UserEntity) userRepository.findByEmail(email);
     }
 }
