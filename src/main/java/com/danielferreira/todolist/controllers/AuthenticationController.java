@@ -31,7 +31,8 @@ public class AuthenticationController {
             return ResponseHandler.generateResponse(String.valueOf(bindingResult.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).findFirst().get()), HttpStatus.BAD_REQUEST);
         }
         var user = userUseCase.findUserByEmail(data.email());
-        if (user == null) return ResponseHandler.generateResponse("E-mail é/ou senha incorreto(s).", HttpStatus.UNPROCESSABLE_ENTITY);
+        if (user == null)
+            return ResponseHandler.generateResponse("E-mail é/ou senha incorreto(s).", HttpStatus.UNPROCESSABLE_ENTITY);
         var token = authUseCase.login(data);
         var userObj = UserResponse.generateResponse(token, new UserResponseDTO(user.getId(), user.getUsername(), user.getAvatar(), user.getEmail()));
         return ResponseHandler.generateResponse("Login realizado com sucesso.", HttpStatus.OK, userObj);
@@ -43,6 +44,10 @@ public class AuthenticationController {
         if (bindingResult.hasErrors()) {
             return ResponseHandler.generateResponse(String.valueOf(bindingResult.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).findFirst().get()), HttpStatus.BAD_REQUEST);
         }
+        if (!data.password().equals(data.confirm_password())) {
+            return ResponseHandler.generateResponse("Confirmação de senha e senha não as mesmas.", HttpStatus.BAD_REQUEST);
+        }
+
         boolean notHasAccount = authUseCase.register(data);
         if (!notHasAccount) return ResponseHandler.generateResponse("Usuário já cadastrado!", HttpStatus.BAD_REQUEST);
         return ResponseHandler.generateResponse("Usuário registrado com sucesso!", HttpStatus.CREATED);

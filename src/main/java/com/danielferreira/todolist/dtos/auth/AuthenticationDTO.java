@@ -8,6 +8,9 @@ public record AuthenticationDTO(
         @NotBlank(message = "O e-mail é obrigatório.")
         String email,
         @NotBlank(message = "A senha é obrigatória.")
-        String password
+        String password,
+
+        @NotBlank(message = "A confirmação da senha é obrigatória.")
+        String confirm_password
 ) {
 }

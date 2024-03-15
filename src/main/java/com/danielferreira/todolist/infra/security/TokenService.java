@@ -45,7 +45,7 @@ public class TokenService {
         }
     }
     public Instant genExpirationDate() {
-        long expiration = 6 * 60 * 60;
+        long expiration = 6 * 60 * 60 * 1000;
 
         return LocalDateTime.now().plus(expiration, ChronoUnit.MILLIS).toInstant(ZoneOffset.of("-03:00"));
     }
