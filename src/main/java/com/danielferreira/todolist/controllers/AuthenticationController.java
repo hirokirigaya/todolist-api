@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,9 +34,13 @@ public class AuthenticationController {
         var user = userUseCase.findUserByEmail(data.email());
         if (user == null)
             return ResponseHandler.generateResponse("E-mail é/ou senha incorreto(s).", HttpStatus.UNPROCESSABLE_ENTITY);
-        var token = authUseCase.login(data);
-        var userObj = UserResponse.generateResponse(token, new UserResponseDTO(user.getId(), user.getUsername(), user.getAvatar(), user.getEmail()));
-        return ResponseHandler.generateResponse("Login realizado com sucesso.", HttpStatus.OK, userObj);
+        try {
+            var token = authUseCase.login(data);
+            var userObj = UserResponse.generateResponse(token, new UserResponseDTO(user.getId(), user.getUsername(), user.getAvatar(), user.getEmail()));
+            return ResponseHandler.generateResponse("Login realizado com sucesso.", HttpStatus.OK, userObj);
+        } catch (BadCredentialsException e) {
+            return ResponseHandler.generateResponse("E-mail é/ou senha incorreto(s).", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
 
     }
 

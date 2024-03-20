@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +23,7 @@ public class TodoController {
 
     @GetMapping
     public ResponseEntity<Object> getAll() {
-        return  ResponseHandler.generateResponse("Busca realizada com sucesso!", HttpStatus.OK,todoUseCase.getAllByUser());
+        return ResponseHandler.generateResponse("Busca realizada com sucesso!", HttpStatus.OK, todoUseCase.getAllByUser());
     }
 
     @PostMapping("/create")
@@ -48,13 +49,15 @@ public class TodoController {
             return ResponseHandler.generateResponse(String.valueOf(bindingResult.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).findFirst()), HttpStatus.BAD_REQUEST);
         }
         if (todoUseCase.findById(id) == null) return ResponseEntity.badRequest().body("Tarefa não encontrada.");
-        return ResponseHandler.generateResponse("Tarefa atualizada com sucesso!", HttpStatus.OK,todoUseCase.update(new UpdateTodoDTO(id, data.title(), data.description())));
+        return ResponseHandler.generateResponse("Tarefa atualizada com sucesso!", HttpStatus.OK, todoUseCase.update(new UpdateTodoDTO(id, data.title(), data.description())));
     }
 
     @PostMapping("/toggle-status/{id}")
     public ResponseEntity<Object> toggleStatusTodo(@PathVariable String id) {
         if (id == null) return ResponseHandler.generateResponse("Tarefa não encontrada.", HttpStatus.BAD_REQUEST);
-        if (todoUseCase.findById(id) == null) return ResponseHandler.generateResponse("Tarefa não encontrada.", HttpStatus.BAD_REQUEST);
+        if (todoUseCase.findById(id) == null) {
+            return ResponseHandler.generateResponse("Tarefa não encontrada.", HttpStatus.BAD_REQUEST);
+        }
         return ResponseHandler.generateResponse("Status da tarefa atualizado com sucesso!", HttpStatus.OK, todoUseCase.toggleStatus(id));
     }
 }
